@@ -1,0 +1,23 @@
+{
+  "name": "transfer-fraud-guard",
+  "version": "1.0.0",
+  "description": "转账反诈守门工具 —— 面向个人用户的转账安全辅助与反诈识别网页应用",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node --test tests/*.test.js",
+    "test:watch": "node --test --watch tests/"
+  },
+  "keywords": [
+    "反诈",
+    "转账安全",
+    "风险识别",
+    "防诈骗",
+    "web-app"
+  ]
+}

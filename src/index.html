@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="转账反诈守门工具 —— 基于历史转账习惯，识别陌生大额与深夜异常交易，转账前自动二次确认" />
+  <title>转账反诈守门工具</title>
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand">
+        <img src="assets/logo.svg" alt="盾牌图标" class="brand-logo" />
+        <div class="brand-text">
+          <h1>转账反诈守门工具</h1>
+          <p class="brand-sub">TRANSFER GUARD</p>
+        </div>
+      </div>
+      <nav class="tabs" role="tablist">
+        <button class="tab-btn active" data-view="transfer" role="tab" aria-selected="true">转账主页</button>
+        <button class="tab-btn" data-view="history" role="tab" aria-selected="false">习惯画像与历史记录</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- ===================== 1. 转账主页（核心操作区） ===================== -->
+    <section id="view-transfer" class="view active">
+      <div class="card transfer-card">
+        <h2 class="card-title">转账安全检测</h2>
+        <p class="card-desc">基于你的历史转账习惯，识别陌生大额与深夜异常交易，转账前自动进行二次确认。</p>
+
+        <form id="transfer-form" novalidate>
+          <div class="form-row">
+            <label for="f-payee">收款人姓名 <em>*</em></label>
+            <input id="f-payee" name="payee" type="text" maxlength="30" placeholder="例如：张伟" required />
+          </div>
+          <div class="form-row">
+            <label for="f-account">收款账户 / 卡号 <span class="optional">选填</span></label>
+            <input id="f-account" name="account" type="text" maxlength="40" placeholder="例如：6222 0200 **** 1234" />
+          </div>
+          <div class="form-row">
+            <label for="f-amount">转账金额（元）<em>*</em></label>
+            <input id="f-amount" name="amount" type="number" min="0.01" step="0.01" placeholder="请输入金额" required />
+          </div>
+          <div class="form-row">
+            <label for="f-time">交易时间（默认当前时间）</label>
+            <input id="f-time" name="time" type="datetime-local" required />
+          </div>
+          <div class="form-row">
+            <label for="f-note">转账附言 / 用途</label>
+            <textarea id="f-note" name="note" rows="3" maxlength="200"
+              placeholder="例如：房租、还款，或粘贴对方要求你转账时说的话"></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-lg" id="btn-detect">安全检测并转账</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="transfer-side">
+        <div class="card side-card">
+          <h3 class="side-title">你的习惯画像</h3>
+          <ul class="profile-mini" id="profile-mini">
+            <li>常用收款人：<span id="mini-whitelist">学习中</span></li>
+            <li>日常单笔均值：<span id="mini-mean">—</span></li>
+            <li>习惯样本：<span id="mini-sample">0 笔</span></li>
+          </ul>
+          <a class="text-link" href="#" data-goto="history">查看习惯画像与历史记录 →</a>
+        </div>
+        <div class="card side-card">
+          <h3 class="side-title">AI 反诈助手</h3>
+          <p class="side-desc">转账前拿不准？点右下角悬浮助手，随时咨询交易安全性。</p>
+          <button class="btn btn-ghost" id="btn-open-chat">打开反诈助手</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 2. 习惯画像与历史记录页 ===================== -->
+    <section id="view-history" class="view">
+      <div class="card">
+        <h2 class="card-title">习惯画像</h2>
+        <p class="card-desc">系统根据你的历史转账记录自动学习，用于识别异常交易。</p>
+        <div class="profile-grid">
+          <div class="profile-item">
+            <h3>常用收款人白名单</h3>
+            <div id="profile-whitelist" class="chip-list"><span class="empty">学习中（历史交易 ≥2 次自动加入）</span></div>
+          </div>
+          <div class="profile-item">
+            <h3>常规金额区间</h3>
+            <div id="profile-amount" class="stat-list">
+              <p class="stat-big">—</p>
+              <p class="stat-sub">均值 — · 历史最高 —</p>
+            </div>
+          </div>
+          <div class="profile-item">
+            <h3>常用时间段</h3>
+            <div id="profile-time" class="stat-list">
+              <p class="stat-big">—</p>
+              <p class="stat-sub">深夜交易（23:00-06:00）— 笔</p>
+            </div>
+          </div>
+          <div class="profile-item">
+            <h3>习惯样本</h3>
+            <div id="profile-sample" class="stat-list">
+              <p class="stat-big">0 笔</p>
+              <p class="stat-sub">记录越多，画像越准确</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head-row">
+          <h2 class="card-title">历史转账明细</h2>
+          <div class="head-actions">
+            <button class="btn btn-ghost btn-sm" id="btn-seed">载入示例数据</button>
+            <button class="btn btn-ghost btn-sm danger" id="btn-clear">清空历史</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>时间</th>
+                <th>收款人</th>
+                <th>账户</th>
+                <th class="num">金额</th>
+                <th>风险等级</th>
+                <th class="num">风险分</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="history-body">
+              <tr><td colspan="7" class="empty-row">暂无历史记录，可手动新增基准记录或载入示例数据。</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <details class="add-record" open>
+          <summary>＋ 手动新增历史基准记录（用于完善初始画像）</summary>
+          <form id="add-record-form" class="record-form" novalidate>
+            <input id="r-payee" type="text" placeholder="收款人姓名 *" required />
+            <input id="r-account" type="text" placeholder="收款账户（选填）" />
+            <input id="r-amount" type="number" min="0.01" step="0.01" placeholder="金额（元）*" required />
+            <input id="r-time" type="datetime-local" required />
+            <input id="r-note" type="text" maxlength="100" placeholder="附言（选填）" />
+            <button type="submit" class="btn btn-primary btn-sm">新增记录</button>
+          </form>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    本工具为转账安全辅助检测，不涉及真实资金操作 · 遇疑似诈骗请拨打 <strong>96110</strong> 反诈专线
+  </footer>
+
+  <!-- 风险评估二次确认弹窗 -->
+  <div id="modal-root" class="modal-root" hidden>
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <button class="modal-close" data-close-modal aria-label="关闭">✕</button>
+      <h2 id="modal-title">风险评估确认</h2>
+      <div class="tx-summary" id="modal-tx-summary"></div>
+      <div class="gauge" id="modal-gauge">
+        <div class="gauge-score" id="modal-score">0</div>
+        <div class="gauge-bar"><div class="gauge-fill" id="modal-fill"></div></div>
+        <div class="gauge-level" id="modal-level">低风险</div>
+      </div>
+      <div class="risk-points" id="modal-points"></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="btn-cancel">取消转账</button>
+        <button class="btn btn-outline" id="btn-consult">一键向 AI 助手咨询</button>
+        <button class="btn btn-primary" id="btn-confirm">继续转账确认</button>
+      </div>
+      <p class="modal-footnote">「继续转账确认」仅为安全检测演示，不会发起真实资金操作。</p>
+    </div>
+  </div>
+
+  <!-- 悬浮 AI 反诈助手 -->
+  <div id="chat-root">
+    <button class="chat-fab" id="chat-fab" aria-label="打开 AI 反诈助手">
+      <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor">
+        <path d="M12 2a9 9 0 0 0-9 9c0 1.7.5 3.3 1.3 4.7L3 20l4.4-1.1A9 9 0 1 0 12 2zm-2 8h4v1.5h-4V10zm0 3h4v1.5h-4V13z"/>
+      </svg>
+    </button>
+    <div class="chat-panel" id="chat-panel" hidden>
+      <div class="chat-head">
+        <div>
+          <strong>AI 反诈助手</strong>
+          <p class="chat-status">已结合当前转账上下文</p>
+        </div>
+        <button class="chat-close" id="chat-close" aria-label="收起">—</button>
+      </div>
+      <div class="chat-context" id="chat-context" hidden></div>
+      <div class="chat-body" id="chat-body"></div>
+      <div class="chat-input-row">
+        <textarea id="chat-input" rows="2" placeholder="例如：对方自称客服让我转账保证金，安全吗？"></textarea>
+        <button class="btn btn-primary btn-sm" id="chat-send">发送</button>
+      </div>
+      <div class="chat-tips">输入问题 / 一键咨询均可 · 咨询结果仅供参考，遇骗请拨 96110</div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

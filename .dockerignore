@@ -1,0 +1,13 @@
+node_modules
+.git
+*.zip
+*.log
+docs
+tests
+README.md
+DEPLOY.md
+package.json
+server.js
+.dockerignore
+Dockerfile
+docker-compose.yml
